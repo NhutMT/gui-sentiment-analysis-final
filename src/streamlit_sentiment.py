@@ -55,7 +55,7 @@ with st.sidebar:
             "nav-link-selected": {"background-color": "#ebf8ee", "color": "#326e51"},
             "menu-title": { "font-size": "1.1rem", "font-weight": "600", "font-family": "Source Sans Pro, sans-serif"},
         },
-        default_index=2)
+        default_index=0)
 st.sidebar.markdown(
     """
     <h3 style="display: flex; align-items: center; font-size: 18px;">
