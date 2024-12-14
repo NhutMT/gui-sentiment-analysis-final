@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 from PIL import Image
 import pickle
 import pandas as pd
@@ -9,10 +10,16 @@ from ultils import content_process, helper, product_analysis
 st.set_page_config(page_title="Sentiment Analysis System", page_icon=":shopping_cart:", layout="wide")
 
 menu = ["Project Summary", "Sentiment Analysis", "Product Analysis", ]
+
+
+# Banner Image
+image = Image.open("src/images/hasaki_banner.jpg")
+st.image(image)
+
 button_style = """
     <style>
     .stButton>button {
-        background-color: #4CAF50;
+        background-color: #326e51;
         color: white;
         border: none;
         padding: 10px 24px;
@@ -26,19 +33,29 @@ button_style = """
     }
     </style>
     """
-st.sidebar.title("Đồ Án Tốt Nghiệp")
+st.sidebar.title("Đồ Án Tốt Nghiệp - K299")
 st.sidebar.markdown(
     """
-    <h2 style="display: flex; align-items: center; font-size: 18px;">
+    <h2 style="display: flex; align-items: center; font-size: 22px;">
         <span style="margin-left: 8px;">Sentiment Analysis Project</span>
     </h2>
     """,
     unsafe_allow_html=True,
 )
 
-page = st.sidebar.selectbox("Chức Năng", menu)
-
-# Subheader with an icon for "Giảng viên hướng dẫn"
+# sidebar menu
+with st.sidebar:
+    page = option_menu("Chức Năng Chính", menu, 
+        icons=['house', 'cloud-upload', "list-task", 'gear'], 
+        menu_icon="cast", 
+        styles={
+            "container": {"padding": "0!important", "background-color": "#e9ecef"},
+            "icon": {"color": "#326e51", "font-size": "1.1rem"}, 
+            "nav-link": {"font-size": "18px", "text-align": "left", "margin":"0px", "--hover-color": "#eee", "font-weight": "500"},
+            "nav-link-selected": {"background-color": "#ebf8ee", "color": "#326e51"},
+            "menu-title": { "font-size": "1.1rem", "font-weight": "600", "font-family": "Source Sans Pro, sans-serif"},
+        },
+        default_index=2)
 st.sidebar.markdown(
     """
     <h3 style="display: flex; align-items: center; font-size: 18px;">
@@ -116,10 +133,7 @@ st.sidebar.write("© 2024 Hasaki Sentiment Analysis System")
 
 # Main page logic
 if page == "Project Summary":
-    # Banner Image
-    image = Image.open("src/images/hasaki_banner.jpg")
-    st.image(image)
-
+    
     tab_containers = st.tabs(['Hasaki Project', 'Thực Hiện Dự Án'])
 
     with tab_containers[0]:
@@ -430,7 +444,7 @@ elif page == "Sentiment Analysis":
     """)
 
     # Streamlit App
-    st.subheader("🚀 Input Customer Feedback for Sentiment Analysis")
+    st.subheader("🚀 Kiểm tra nội dung bình luận mới")
 
     flag = False
     lines = None
@@ -444,7 +458,7 @@ elif page == "Sentiment Analysis":
         # Add sample data link from data folder for download
         with open("src/data/sample_feedback.txt", "r") as file:
             sample_data = file.read()
-        st.download_button(label="📥 Download Sample Data", data=sample_data, file_name="sample_feedback.txt", mime="text/plain")
+        st.download_button(label="📥 File dữ liệu mẫu", data=sample_data, file_name="sample_feedback.txt", mime="text/plain")
 
         if uploaded_file is not None:
             try:
@@ -454,9 +468,10 @@ elif page == "Sentiment Analysis":
                 else:
                     lines = pd.read_table(uploaded_file, header=None)
                 
-                st.write("📂 **Uploaded Data Preview:**")
+                st.write("📂 **Dữ liệu đã tải lên:**")
+                lines.columns = ["content"]
                 st.dataframe(lines)
-                lines = lines[0]  # Select the first column for processing
+                lines = lines["content"]
                 flag = True
             except Exception as e:
                 st.error(f"🚨 Oops! Couldn’t read the file: {e}")
@@ -510,25 +525,47 @@ elif page == "Sentiment Analysis":
                 predictions = [sentiment_labels[pred] for pred in y_pred_new]
                 
                 # Display predictions
-                st.subheader("🎯 Feedback Analysis Results:")
-                for i, line in enumerate(lines):
-                    st.markdown(f"""
-                    - **Feedback**: {line}  
-                    - **Sentiment**: {predictions[i]}  
-                    """)
-                    # Add fun reactions based on sentiment
-                    if predictions[i] == "💖 Positive":
-                        st.success("✨ Skincare success! Your customers are glowing!")
+                st.subheader("🎯 Kết quả phân tích:")
+                
+                # # OLD VERSION
+                # for i, line in enumerate(lines):
+                #     st.markdown(f"""
+                #     - **Nội dung**: {line}  
+                #     - **Sentiment**: {predictions[i]}  
+                #     """)
+                #     # Add fun reactions based on sentiment
+                #     if predictions[i] == "💖 Positive":
+                #         st.success("✨ Skincare success! Your customers are glowing!")
+                #     else:
+                #         st.error("🛑 Skincare alert! Looks like there’s room for improvement.")
+
+                # NEW VERSION
+                df = pd.DataFrame(
+                {
+                    "Nội Dung": lines,
+                    "Sentiment": predictions,
+                })
+
+                # Apply custom CSS for alternating row colors based on sentiment
+                def color_row(row):
+                    if row['Sentiment'] == "💖 Positive":
+                        return ['background-color: #ebf8ee'] * len(row)
                     else:
-                        st.error("🛑 Skincare alert! Looks like there’s room for improvement.")
+                        return ['background-color: #ffedec'] * len(row)
+
+                styled_df = df.style.apply(color_row, axis=1)
+
+                st.markdown(styled_df.render(), unsafe_allow_html=True)
 
 #####################################
 
 elif page == "Product Analysis":
-    st.title("Phân Tích Sản Phẩm")
+    st.title("🌟 Phân Tích Sản Phẩm 🌟")
     st.write("Dựa vào kết quả phân tích, Hasaki và các đối tác sẽ hiểu được cảm nhận của khách hàng về sản phẩm.")
     
     df_products = helper.read_csv("src/data/San_pham.csv")
+    df_raw_reviews = helper.read_csv("src/data/Danh_gia.csv")
+    df_merged = pd.merge(df_raw_reviews, df_products, on="ma_san_pham", how="inner")
 
     # Chọn phương thức nhập liệu (Mã sản phẩm hoặc Tên sản phẩm)
     input_method = st.radio("Chọn phương thức nhập liệu:", ["Chọn tên sản phẩm", "Nhập mã/tên sản phẩm"])
@@ -539,7 +576,7 @@ elif page == "Product Analysis":
         search_criteria = st.text_input("Nhập mã hoặc tên đầy đủ của sản phẩm:")
         
         # Add sample text for product name and product code
-        st.markdown("📝 **Ví dụ tên sản phẩm:** Nước Hoa Hồng Klairs Không Mùi Cho Da Nhạy Cảm 180ml  \n📝 **Ví dụ mã sản phẩm:** 318900012")
+        st.markdown("📝 **Ví dụ tên sản phẩm:** Nước Hoa Hồng, Kem Chống Nắng  \n📝 **Ví dụ mã sản phẩm:** 318900012")
         
         if (search_criteria != "" and search_criteria.isdigit()):
             result = df_products[df_products["ma_san_pham"] == eval(search_criteria)]
@@ -549,15 +586,16 @@ elif page == "Product Analysis":
                 st.write("Không tìm thấy sản phẩm!")
             
         elif (search_criteria != ""):
-            result = df_products[df_products["ten_san_pham"] == search_criteria]
+            result = df_products[df_products["ten_san_pham"].str.contains(search_criteria)]
             if not result.empty:
-                product_code = result["ma_san_pham"].iloc[0]
+                selected_item = st.selectbox("Kết Quả Tìm Sản Phẩm:", result['ten_san_pham'].unique())
+                product_code = result["ma_san_pham"].iloc[0] # First load is selected the first item.
             else:
                 st.write("Không tìm thấy sản phẩm!")
         
     else:   
         # Chọn tên sản phẩm từ dropdown
-        selected_item = st.selectbox("Chọn tên sản phẩm:", df_products['ten_san_pham'].unique())
+        selected_item = st.selectbox("Chọn tên sản phẩm:", df_merged['ten_san_pham'].unique())
         product_code = df_products[df_products["ten_san_pham"] == selected_item]["ma_san_pham"].iloc[0]
 
     # Hiển thị thông tin sản phẩm
@@ -569,30 +607,9 @@ elif page == "Product Analysis":
             df_review = helper.read_csv("src/data/step2_full_review_result.csv")
             st.subheader("Kết quả phân tích sản phẩm")
             
-            st.write("Thông tin sản phẩm:")
-            df_info = product_analysis.GetProductInfoByCode(df_products, product_code)
-            st.markdown(
-                df_info.to_html(index=False, justify='center', classes='table table-striped'),
-                unsafe_allow_html=True
-            )
+            st.markdown("#### 1. Thông tin sản phẩm:")
+            product_analysis.GetProductInfoByCode(df_merged, product_code)
 
-            st.write("Thông tin nhận xét:")
-            df_anlyze, sentiment_data, sentiment_categories = product_analysis.GetProductReview(df_review, product_code)
-
-            # Draw Pie chart
-            st.write("Thống kê cảm xúc:")
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                product_analysis.DrawPieChart(sentiment_data, sentiment_categories)
-
-            # Generate word clouds for each sentiment category
-            s_positive = df_anlyze[df_anlyze['Categorized'] == 1]
-            s_negative = df_anlyze[df_anlyze['Categorized'] == 0]
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("\nTop 50 từ Positive về sản phẩm:")
-                product_analysis.wcloud_visualize(s_positive, 'Pos_words', 'Word Cloud - Positive')
-            with col2:
-                st.write("\nTop 50 từ Negative về sản phẩm:")
-                product_analysis.wcloud_visualize(s_negative, 'Neg_words', 'Word Cloud - Negative')
+            st.markdown("#### 2. Thông tin nhận xét:")
+            product_analysis.GetProductReview(df_review, product_code, df_raw_reviews)
+            
