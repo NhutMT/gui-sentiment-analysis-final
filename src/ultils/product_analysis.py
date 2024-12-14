@@ -18,20 +18,32 @@ def GetProductInfoByCode(df_product, product_code):
     return df_info
 
 def GenerateProductDetailTable(df_product_info):
-    short_desc = ' '.join(df_product_info['mo_ta'].values[0].split()[:100])
-    data = {
-        'Thông tin': ['Tên sản phẩm', 'Giá bán', 'Giá gốc', 'Phân loại', 'Mô tả', 'Điểm trung bình'],
-        'Chi tiết': [
-            df_product_info['ten_san_pham'].values[0],
-            f"{df_product_info['gia_ban'].values[0]:,} VNĐ",  # Format as currency
-            f"{df_product_info['gia_goc'].values[0]:,.0f} VNĐ",  # Format as currency
-            df_product_info['phan_loai'].values[0].replace("\n", ", "),  # Replace newlines with commas
-            f"{short_desc}...",  # Use first 100 words of description
-            f"{df_product_info['diem_trung_binh'].values[0]} *"
+    # group by product code
+    df_product = df_product_info.groupby('ma_san_pham').first().reset_index()
+    
+    short_desc = ' '.join(df_product['mo_ta'].values[0].split())
+    df_info = pd.DataFrame(data = {
+        'information': ['Tên sản phẩm', 'Giá bán', 'Giá gốc', 'Phân loại', 'Mô tả', 'Điểm trung bình'],
+        'details': [
+            df_product['ten_san_pham'].values[0],
+            f"{df_product['gia_ban'].values[0]:,} VNĐ",  # Format as currency
+            f"{df_product['gia_goc'].values[0]:,.0f} VNĐ",  # Format as currency
+            df_product['phan_loai'].values[0].replace("\n", ", "),  # Replace newlines with commas
+            f"{df_product['mo_ta'].values[0]}",
+            f"{df_product['diem_trung_binh'].values[0]} ⭐"
         ]
-    }
-    # Convert to a DataFrame for display
-    return pd.DataFrame(data)
+    })
+    # Set style for the first column
+    styled_df_info = df_info.style.set_properties(subset=['information'], **{'background-color': '#ebf8ee'})
+    st.dataframe(
+    styled_df_info,
+    column_config={
+        "information": "Thông tin",
+        "details": "Chi tiết"
+    },
+    hide_index=True,
+    width=1000)  # Set the minimum width
+    
 
 def wcloud_visualize(df_sub, column, title):
     # Check if the column has data
@@ -52,7 +64,7 @@ def wcloud_visualize(df_sub, column, title):
 
     plt.figure(figsize=(6, 6))
     plt.imshow(wc, interpolation='bilinear')
-    plt.title(title, fontsize=16)
+    # plt.title(title, fontsize=16)
     plt.axis('off')
     st.pyplot(plt)
 
@@ -66,19 +78,52 @@ def DrawPieChart(data, categories):
     # Show the plot using Streamlit
     st.pyplot(fig)
 
-def GetProductReview(df_review, product_code):
-  # Analyze the reviews for the selected product
-  df_anlyze = df_review.loc[df_review['ma_san_pham'] == product_code]
+def VisualizeBarPlot(df, xlabel, ylabel, title):
+    # Visualize df with bar plot
+    fig, ax = plt.subplots()
+    df.plot(kind='bar', color="green", ax=ax)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    st.pyplot(fig)
 
-  # Prepare data for the pie chart
-  sentiment_categories = ['Negative', 'Positive']
-  sentiment_data = [0, 0]  # Initialize rates with 0 for all categories
+def GetProductReview(df_review, product_code, df_raw_reviews = None):
+    # Analyze the reviews for the selected product
+    df_anlyze = df_review.loc[df_review['ma_san_pham'] == product_code]
+    st.write(df_anlyze[['ma_san_pham', 'Categorized', 'Count_Sentiment', 'Sentiment_Rate (%)']].head(5))
+  
 
-  # Populate sentiment data
-  for index, row in df_anlyze.iterrows():
-      if row['Categorized'] == 0:  # Negative
-          sentiment_data[0] = row['Sentiment_Rate (%)']
-      elif row['Categorized'] == 1:  # Positive
-          sentiment_data[1] = row['Sentiment_Rate (%)']
+    st.markdown("#### 3. Trực quan thông tin:")
+    col1, col2 = st.columns(2)
+    with col1:
+        # Prepare data for the pie chart
+        sentiment_categories = ['Negative', 'Positive']
+        sentiment_data = [0, 0]  # Initialize rates with 0 for all categories
 
-  return df_anlyze, sentiment_data, sentiment_categories
+        # Populate sentiment data
+        for index, row in df_anlyze.iterrows():
+            if row['Categorized'] == 0:  # Negative
+                sentiment_data[0] = row['Sentiment_Rate (%)']
+            elif row['Categorized'] == 1:  # Positive
+                sentiment_data[1] = row['Sentiment_Rate (%)']
+
+        DrawPieChart(sentiment_data, sentiment_categories)
+    with col2:
+        # Check if the product has reviews
+        df_anlyze_2 = df_raw_reviews.loc[df_raw_reviews['ma_san_pham'] == product_code]
+        df_rating = df_anlyze_2['so_sao'].value_counts().sort_index()
+
+        VisualizeBarPlot(df_rating, 'Rating', 'Count', 'Product Ratings')
+        
+
+    # # Generate word clouds for each sentiment category
+    s_positive = df_anlyze[df_anlyze['Categorized'] == 1]
+    s_negative = df_anlyze[df_anlyze['Categorized'] == 0]
+
+    col1_wc, col2_wc = st.columns(2)
+    with col1_wc:
+        st.markdown("\n**Top 50 từ Positive về sản phẩm**")
+        wcloud_visualize(s_positive, 'Pos_words', 'Word Cloud - Positive')
+    with col2_wc:
+        st.write("\n**Top 50 từ Negative về sản phẩm**")
+        wcloud_visualize(s_negative, 'Neg_words', 'Word Cloud - Negative')
