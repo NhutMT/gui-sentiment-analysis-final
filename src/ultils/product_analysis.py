@@ -33,6 +33,7 @@ def GenerateProductDetailTable(df_product_info):
             f"{df_product['diem_trung_binh'].values[0]} ⭐"
         ]
     })
+    
     # Set style for the first column
     styled_df_info = df_info.style.set_properties(subset=['information'], **{'background-color': '#ebf8ee'})
     st.dataframe(
