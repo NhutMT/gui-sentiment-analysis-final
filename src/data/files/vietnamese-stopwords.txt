@@ -1,4 +1,3 @@
-sản_phẩm
 a_lô
 a_ha
 ai
@@ -1079,7 +1078,7 @@ phía_trên
 phía_trước
 phóc
 phót
-phù_hợp1
+phù_hợp
 phăn_phắt
 phương_chi
 phải
@@ -1950,4 +1949,3 @@ sài_gòn
 sàigòn
 khu_vực
 lễ_tân
-môi_chóng_chóng

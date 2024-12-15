@@ -1,6 +1,3 @@
-nsx
-hsd
-bthg
 aud
 se
 gd
@@ -11852,18 +11849,3 @@ cong
 hoteldesartsaigon
 hôteldesarts
 os
-hasakiâu
-kcn
-hasaki
-sản_phẩm
-plc
-train
-toner
-vichy
-loreal
-inisfre
-bnbg
-retinol
-naruko
-mụt
-tbc

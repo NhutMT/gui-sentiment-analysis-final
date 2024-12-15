@@ -1,7 +1,7 @@
 import regex
 from underthesea import word_tokenize, pos_tag, sent_tokenize, chunk
 import re
-
+from ultils import word_dictionary
 
 folder_path = 'src/data/files'
 #LOAD EMOJICON
@@ -41,13 +41,7 @@ file = open(f'{folder_path}/vietnamese-stopwords.txt', 'r', encoding="utf8")
 stopwords_lst = file.read().split('\n')
 file.close()
 
-file = open(f'{folder_path}/skincare_stopwords.txt', 'r', encoding="utf8")
-stopwords_skincare = file.read().split('\n')
-file.close()
-
-stopwords_lst = stopwords_lst + stopwords_skincare
-
-
+stopwords_lst = stopwords_lst + word_dictionary.manual_stopwords
 ####
 # Chuẩn hóa unicode tiếng việt
 def loaddicchar():
@@ -64,41 +58,41 @@ def loaddicchar():
     return dic
 
 # Đưa toàn bộ dữ liệu qua hàm này để chuẩn hóa lại
-def covert_unicode(txt):
+def convert_unicode(txt):
     dicchar = loaddicchar()
     return regex.sub(
         r'à|á|ả|ã|ạ|ầ|ấ|ẩ|ẫ|ậ|ằ|ắ|ẳ|ẵ|ặ|è|é|ẻ|ẽ|ẹ|ề|ế|ể|ễ|ệ|ì|í|ỉ|ĩ|ị|ò|ó|ỏ|õ|ọ|ồ|ố|ổ|ỗ|ộ|ờ|ớ|ở|ỡ|ợ|ù|ú|ủ|ũ|ụ|ừ|ứ|ử|ữ|ự|ỳ|ý|ỷ|ỹ|ỵ|À|Á|Ả|Ã|Ạ|Ầ|Ấ|Ẩ|Ẫ|Ậ|Ằ|Ắ|Ẳ|Ẵ|Ặ|È|É|Ẻ|Ẽ|Ẹ|Ề|Ế|Ể|Ễ|Ệ|Ì|Í|Ỉ|Ĩ|Ị|Ò|Ó|Ỏ|Õ|Ọ|Ồ|Ố|Ổ|Ỗ|Ộ|Ờ|Ớ|Ở|Ỡ|Ợ|Ù|Ú|Ủ|Ũ|Ụ|Ừ|Ứ|Ử|Ữ|Ự|Ỳ|Ý|Ỷ|Ỹ|Ỵ',
         lambda x: dicchar[x.group()], txt)
 
-connecting_words = ['không', 'chẳng', 'chả', 'đã', 'rất', 'chưa', 'quá', 'giá', 'xài', 'ngứa',
-               'thoải', 'sạch', 'dị', 'đáng', 'rất_thoải', 'không_đáng', 'chất', 'tạm', 'rát',
-               'kém', 'làm', 'sáng', 'trắng', 'hài', 'không_gây', 'nhờn', 'bực', 'lỗi',
-               'đau', 'ngăn', 'giao', 'sở', 'thích', 'da', 'mặt', 'tẩy', 'nếp', 'thâm', 'khó', 'phí', 'thất',
-              'không_hiệu', 'không_thay', 'hoàn', 'hoàn_toàn', 'làm', 'giảm', 'cải', 'rõ', 'tuyệt', 'tốt']
-
 def process_special_word(text):
-    # có thể có nhiều từ đặc biệt cần ráp lại với nhau
-    new_text = ''
-    text_lst = text.split()
-    i= 0
-    # không, chẳng, chả...
-
-    if set(connecting_words).intersection(text_lst):
-        while i <= len(text_lst) - 1:
-            word = text_lst[i]
-            # print(word)
-            #print(i)
-            if  word in connecting_words:
-                next_idx = i+1
-                if next_idx <= len(text_lst) -1:
-                    word = word +'_'+ text_lst[next_idx]
-                i= next_idx + 1
-            else:
-                i = i+1
-            new_text = new_text + word + '. '
+    # Tokenize the text if input is a string
+    if isinstance(text, str):
+        text_lst = word_tokenize(text, format="text").split()
+    elif isinstance(text, list):
+        text_lst = text
     else:
-        new_text = text
-    return new_text.strip()
+        raise ValueError("Input should be a string or a pre-tokenized list.")
+
+    new_text = []
+    i = 0
+
+    while i < len(text_lst):
+        # Check for multi-word phrases
+        current_phrase = text_lst[i]
+        next_idx = i + 1
+
+        # Check for two-word phrase
+        if next_idx < len(text_lst):
+            combined_phrase = f"{text_lst[i]}_{text_lst[next_idx]}"
+            if combined_phrase in word_dictionary.connecting_words:
+                current_phrase = combined_phrase
+                i += 1  # Skip the next word as it's part of the phrase
+
+        new_text.append(current_phrase)
+        i += 1
+
+    # Join the processed words back into a single string
+    return " ".join(new_text)
 
 # Hàm để chuẩn hóa các từ có ký tự lặp
 def normalize_repeated_characters(text):
@@ -106,16 +100,40 @@ def normalize_repeated_characters(text):
     # Ví dụ: "lònggggg" thành "lòng", "thiệtttt" thành "thiệt"
     return re.sub(r'(.)\1+', r'\1', text)
 
-def process_postag_thesea(text):
+def process_postag_thesea(text, lst_word_type=None, preserve_phrases=None):
+    if lst_word_type is None:
+        lst_word_type = ['N', 'Np', 'A', 'Ab', 'V', 'Vb', 'Vy', 'R']  # Default POS tags
+
+    if preserve_phrases is None:
+        preserve_phrases = ['giảm thâm','rất','rất_tốt','tốt','bình_thường','cũng_được',\
+                            'tạm_được','khá','tệ','chán','10đ','chân_ái','ngon_bổ_rẻ','ngon_rẻ',
+                            'ngon_bổ','ngon_tốt','xịn','quá tệ','không tốt',
+                            'không như quảng cáo','không giống quảng cáo','không hài lòng','nâng_tone']  # Add more phrases as needed
+
+    # Preprocess text to temporarily replace preserve_phrases with tokens
+    for phrase in preserve_phrases:
+        text = text.replace(phrase, '_'.join(phrase.split()))
+
     new_document = ''
     for sentence in sent_tokenize(text):
-        sentence = sentence.replace('.','')
-        ###### POS tag
-        lst_word_type = ['N','Np','A','Ab','V','Vb','Vy','R']
-        # lst_word_type = ['A','AB','V','VB','VY','R']
-        sentence = ' '.join( word[0] if word[1].upper() in lst_word_type else '' for word in pos_tag(process_special_word(word_tokenize(sentence, format="text"))))
-        new_document = new_document + sentence + ' '
-    ###### DEL excess blank space
+        sentence = sentence.replace('.', '')
+
+        # Tokenize and POS tag
+        tagged_words = pos_tag(word_tokenize(sentence, format="text"))
+
+        # Filter words by POS tags
+        filtered_sentence = []
+        for word, tag in tagged_words:
+            if word in preserve_phrases:
+                # Restore preserved phrases
+                filtered_sentence.append(word.replace('_', ' '))
+            elif tag.upper() in lst_word_type:
+                filtered_sentence.append(word)
+
+        # Join the filtered words
+        new_document += ' '.join(filtered_sentence) + ' '
+
+    # Remove excess blank spaces
     new_document = regex.sub(r'\s+', ' ', new_document).strip()
     return new_document
 
@@ -126,6 +144,44 @@ def remove_stopword(text, stopwords):
     ###### DEL excess blank space
     document = regex.sub(r'\s+', ' ', document).strip()
     return document
+
+def handle_ambiguous_words(text, sentiment_dict):
+    # Split text into words
+    words = text.split()
+    processed_text = []
+
+    for i, word in enumerate(words):
+        # If 'mụn' is found, look at its context
+        if word == "mụn":
+            # Check the previous and next words
+            prev_word = words[i - 1] if i > 0 else ""
+            next_word = words[i + 1] if i < len(words) - 1 else ""
+
+            # Combine 'mụn' with previous or next words
+            phrase_prev = f"{prev_word}_{word}"
+            phrase_next = f"{word}_{next_word}"
+
+            # Determine if the phrase has sentiment
+            if phrase_prev in sentiment_dict:
+                processed_text.append(phrase_prev)
+            elif phrase_next in sentiment_dict:
+                processed_text.append(phrase_next)
+            else:
+                processed_text.append(word)
+        else:
+            processed_text.append(word)
+
+    return " ".join(processed_text)
+
+def remove_stopword_with_protection(text, stopwords_lst, protected_words):
+    # Split the text into words
+    words = text.split()
+
+    # Remove stopwords but keep protected words
+    filtered_words = [word for word in words if word in protected_words or word not in stopwords_lst ]
+
+    # Rejoin the filtered words into a string
+    return ' '.join(filtered_words)
 
 
 def process_text(text, emoji_dict, teen_dict, wrong_lst, english_dict):
@@ -154,7 +210,7 @@ def process_text(text, emoji_dict, teen_dict, wrong_lst, english_dict):
         ###### Normalize Repeated Characters
         sentence = normalize_repeated_characters(sentence)
 
-        new_sentence = new_sentence+ sentence + ' '
+        new_sentence = new_sentence + sentence + ' '
 
     document = new_sentence
     #print(document)
@@ -166,19 +222,34 @@ def process_text(text, emoji_dict, teen_dict, wrong_lst, english_dict):
 
 
 def clean_comment(df_data, input_col, output_col):
+    # Step 1: Convert Unicode
+    df_data[f'{output_col}'] = df_data[input_col].apply(lambda x: convert_unicode(x))
+    print('- step1: Convert Unicode - Done...')
 
-  df_data[f'{output_col}'] = df_data[input_col].apply(lambda x: covert_unicode(x))
-  print('- step1: Convert Unicode - Done...')
+    # Step 2: Process Text
+    df_data[f'{output_col}'] = df_data[output_col].apply(
+        lambda x: process_text(x, emoji_dict, teen_dict, wrong_lst, english_dict)
+    )
+    print('- step2: Process Text - Done...')
 
-  df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: process_text(x, emoji_dict, teen_dict, wrong_lst, english_dict))
-  print('- step2: Process text - Done...')
+    # Step 3: Process Special Words
+    df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: process_special_word(x))
+    print('- step3: Process Special Words - Done...')
 
-  df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: process_postag_thesea(x))
-  print('- step3: Process Postag Thesea - Done...')
+    # Step 4: Handle Ambiguous Words
+    df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: handle_ambiguous_words(x, word_dictionary.sentiment_dict))
+    print('- step4: Handle Ambiguous Words - Done...')
 
-  df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: remove_stopword(x, stopwords_lst))
-  print('- step4: Remove Stopword - Done...')
+    # Step 5: Process POS Tags
+    df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: process_postag_thesea(x))
+    print('- step5: Process Postag Thesea - Done...')
 
-  df_data[f'{output_col}_chunk'] = df_data[output_col].apply(lambda x: chunk(x))
-  print('- step5: Create Chunk - Done...')
-  return df_data
+    # Step 6: Remove Stopwords
+    df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: remove_stopword(x, stopwords_lst))
+    print('- step6: Remove Stopword - Done...')
+
+    # Step 7: Create chunk word
+    df_data[f'{output_col}_chunk'] = df_data[output_col].apply(lambda x: chunk(x))
+    print('- step7: Create Chunk - Done...')
+
+    return df_data

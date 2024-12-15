@@ -415,4 +415,3 @@ view	phong cảnh
 hd	hóa đơn
 sp	sản phẩm
 shiper	người giao hàng
-rat	rất

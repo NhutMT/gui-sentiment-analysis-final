@@ -962,7 +962,7 @@ corteseous	kháu khỉnh
 vietnam	việt nam
 duplex	song công
 hien	hiền
-fan	khách hàng
+fan	quạt
 headscratcher	thợ cạo đầu
 raked	cào
 large	lớn
@@ -2579,7 +2579,7 @@ fee	học phí
 prder	đặt hàng
 hoast	nâng cao
 backhome	về nhà
-chair	cái ghế
+chai	cái ghế
 remants	tàn dư
 leo	sư tử
 emplacement	sự thay thế
@@ -4251,5 +4251,3 @@ stayed	ở lại
 prior	ưu tiên
 recomentded	đề nghị
 annnoying	làm phiền
-mask	mặt nạ
-srm	serum
