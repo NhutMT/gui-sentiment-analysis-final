@@ -58,6 +58,24 @@ with st.sidebar:
         default_index=2)
 st.sidebar.markdown(
     """
+    <style>
+        .footer {
+            text-align: center;
+            font-size: 12px;
+        }
+        hr {
+            border: 0.5px solid gray;
+        }
+    </style>
+    <div class="footer">
+        <hr>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.sidebar.markdown(
+    """
     <h3 style="display: flex; align-items: center; font-size: 18px;">
         <span style="margin-left: 8px;">Giảng viên hướng dẫn</span>
     </h3>
@@ -428,10 +446,6 @@ elif page == "Sentiment Analysis":
     with open(pkl_svm, 'rb') as file:  
         svm_model_sentiment = pickle.load(file)
 
-    pkl_svm='src/models/svm_model.pkl'
-    with open(pkl_svm, 'rb') as file:  
-        svm_model_sentiment = pickle.load(file)
-
     # Header
     st.title("🌟 Phân Tích Phản Hồi 🌟")
 
@@ -515,10 +529,10 @@ elif page == "Sentiment Analysis":
                 new_reviews_combined = sp.hstack((x_new, df_new_review[['content_length_scaled']]))
 
                 # Predict sentiment by Logistic 
-                y_pred_new = lgr_model_sentiment.predict(new_reviews_combined)
+                # y_pred_new = lgr_model_sentiment.predict(new_reviews_combined)
 
                 # Predict sentiment by svm 
-                # y_pred_new = svm_model_sentiment.predict(new_reviews_combined)
+                y_pred_new = svm_model_sentiment.predict(new_reviews_combined)
                 
                 # Map predictions to sentiment labels
                 sentiment_labels = {0: "💔 Negative", 1: "💖 Positive"}
@@ -526,18 +540,6 @@ elif page == "Sentiment Analysis":
                 
                 # Display predictions
                 st.subheader("🎯 Kết quả phân tích:")
-                
-                # # OLD VERSION
-                # for i, line in enumerate(lines):
-                #     st.markdown(f"""
-                #     - **Nội dung**: {line}  
-                #     - **Sentiment**: {predictions[i]}  
-                #     """)
-                #     # Add fun reactions based on sentiment
-                #     if predictions[i] == "💖 Positive":
-                #         st.success("✨ Skincare success! Your customers are glowing!")
-                #     else:
-                #         st.error("🛑 Skincare alert! Looks like there’s room for improvement.")
 
                 # NEW VERSION
                 df = pd.DataFrame(
@@ -555,7 +557,7 @@ elif page == "Sentiment Analysis":
 
                 styled_df = df.style.apply(color_row, axis=1)
 
-                st.markdown(styled_df.render(), unsafe_allow_html=True)
+                st.markdown(styled_df.to_html(), unsafe_allow_html=True)
 
 #####################################
 
@@ -590,6 +592,29 @@ elif page == "Product Analysis":
             if not result.empty:
                 selected_item = st.selectbox("Kết Quả Tìm Sản Phẩm:", result['ten_san_pham'].unique())
                 product_code = result["ma_san_pham"].iloc[0] # First load is selected the first item.
+
+                # if "df" not in st.session_state:
+                #     st.session_state.df = pd.DataFrame(
+                #         result[['ma_san_pham', 'ten_san_pham']].drop_duplicates(), columns=["ma_san_pham", "ten_san_pham"]
+                #     )
+
+                # event = st.dataframe(
+                #     st.session_state.df,
+                #     key="data",
+                #     on_select="rerun",
+                #     selection_mode=["single-row"],
+                # )
+                # st.write(event.selection)
+                # # st.write(event.selection.rows[0])
+
+                # if len(event.selection.rows) > 0:
+                #     idx = event.selection.rows[0]
+                #     print(idx)
+                #     st.write(st.session_state.df)
+                #     selected_row = st.session_state.df.iloc[int(idx)]
+                #     st.write(selected_row)
+                    
+
             else:
                 st.write("Không tìm thấy sản phẩm!")
         
