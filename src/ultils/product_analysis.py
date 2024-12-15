@@ -28,7 +28,7 @@ def GenerateProductDetailTable(df_product_info):
             df_product['ten_san_pham'].values[0],
             f"{df_product['gia_ban'].values[0]:,} VNĐ",  # Format as currency
             f"{df_product['gia_goc'].values[0]:,.0f} VNĐ",  # Format as currency
-            df_product['phan_loai'].values[0].replace("\n", ", "),  # Replace newlines with commas
+            df_product['phan_loai'].values[0].replace("\n", ", ") if pd.notnull(df_product['phan_loai'].values[0]) else "N/A",  # Replace newlines with commas
             f"{df_product['mo_ta'].values[0]}",
             f"{df_product['diem_trung_binh'].values[0]} ⭐"
         ]
@@ -90,6 +90,10 @@ def VisualizeBarPlot(df, xlabel, ylabel, title):
 def GetProductReview(df_review, product_code, df_raw_reviews = None):
     # Analyze the reviews for the selected product
     df_anlyze = df_review.loc[df_review['ma_san_pham'] == product_code]
+    if df_anlyze.empty:
+        print("Không có đánh giá nào cho sản phẩm này.")
+        return
+    
     st.write(df_anlyze[['ma_san_pham', 'Categorized', 'Count_Sentiment', 'Sentiment_Rate (%)']].head(5))
   
 

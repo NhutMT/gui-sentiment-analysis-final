@@ -6,6 +6,7 @@ sentiment_dict = {
     "sạch_mụn": "positive",
     "hết_mụn": "positive",
     "đỡ_mụn": "positive",
+    "giảm_thâm": "positive",
     #Negative
     "nổi_mụn": "negative",
     "mọc_mụn": "negative",
@@ -35,9 +36,19 @@ connecting_words = ['bình_thường', 'bết_dính', 'chưa', 'chưa_đáng', '
                     'thoải', 'thoải_mái', 'thâm', 'thích', 'thích_lắm', 'thất', 'thất_vọng', 'trắng',
                     'tẩy', 'tẩy_sạch', 'tẩy_trang', 'tệ', 'xài', 'xài_chán', 'xài_rất', 'xài_tốt', 'đau',
                     'đáng', 'đã', 'đã_dùng', 'đạt_yêu_cầu', 'ưng_ý','đáng_tiền','cực_thích','tệ', 'bình thường',
-                    'khá','cũng được','rất','tốt','giá_thành', 'giá_cả', '10đ','100đ','giảm_thâm',
-                    'xịt_khoáng','thấm_nhanh','tẩy_sạch','cực_đã','rất_tốt',
-                    'không_bị','mụn_li_ti','cũng_được','cũng_bình_thường','bình_thường',
+                    'khá','cũng được','rất','tốt','giá_thành', 'giá_cả', '10đ','100đ','giảm_thâm',\
+                    'xịt_khoáng','thấm_nhanh','tẩy_sạch','cực_đã','rất_tốt',\
+                    'không_bị','mụn_li_ti','cũng_được','cũng_bình_thường','bình_thường',\
                     'mùi_hương','giá_rẻ','giá_thành','giá_cả','mụn_viêm','cấp_ẩm','mờ_thâm','chân_ái',
-                    'ngon', 'ngon_bổ', 'không_như', 'không_giống', 'không_hài'
-                    ]
+                    'không_như_quảng_cáo','không_tốt','không_như_mong_đợi', 'không_như_mong_chờ','không_giống_mong_đợi',
+                    'rất','rất_tốt','tốt','bình_thường','cũng_được','tạm_được','khá','tệ','chán','10đ','chân_ái','ngon_bổ_rẻ','ngon_rẻ',
+                    'ngon_bổ','ngon_tốt','xịn','quá_tệ','không_tốt','uy_tín','nâng_tone', 'không_như_quảng_cáo','không_giống_quảng_cáo',
+                    'không_hài_lòng','cực_kỳ','cực_kì','tột_độ','sản_phẩm','tốt_lắm','tuyệt_vời','rất_ổn','cực_đỉnh','tuyệt','tuyệt_vời'
+
+]
+manual_stopwords=['mình','này','có','thấy','và','là',\
+                  'thì','nhưng','cũng','lên','nha',\
+                  'cho', 'cả', 'loại', 'luôn', 'là', 'lên', 'mà','nha','ntn',
+                   'này','rồi','sau đó', 'thì', 'và', 'với',\
+                  'ở','loại này','hasaki','í','mẹ','em','đợt này','đợt', 'sản phẩm', 'sản_phẩm'
+                  ]

@@ -55,7 +55,7 @@ with st.sidebar:
             "nav-link-selected": {"background-color": "#ebf8ee", "color": "#326e51"},
             "menu-title": { "font-size": "1.1rem", "font-weight": "600", "font-family": "Source Sans Pro, sans-serif"},
         },
-        default_index=2)
+        default_index=0)
 st.sidebar.markdown(
     """
     <style>
@@ -590,31 +590,23 @@ elif page == "Product Analysis":
         elif (search_criteria != ""):
             result = df_products[df_products["ten_san_pham"].str.contains(search_criteria)]
             if not result.empty:
-                selected_item = st.selectbox("Kết Quả Tìm Sản Phẩm:", result['ten_san_pham'].unique())
-                product_code = result["ma_san_pham"].iloc[0] # First load is selected the first item.
-
-                # if "df" not in st.session_state:
-                #     st.session_state.df = pd.DataFrame(
-                #         result[['ma_san_pham', 'ten_san_pham']].drop_duplicates(), columns=["ma_san_pham", "ten_san_pham"]
-                #     )
-
-                # event = st.dataframe(
-                #     st.session_state.df,
-                #     key="data",
-                #     on_select="rerun",
-                #     selection_mode=["single-row"],
-                # )
-                # st.write(event.selection)
-                # # st.write(event.selection.rows[0])
-
-                # if len(event.selection.rows) > 0:
-                #     idx = event.selection.rows[0]
-                #     print(idx)
-                #     st.write(st.session_state.df)
-                #     selected_row = st.session_state.df.iloc[int(idx)]
-                #     st.write(selected_row)
-                    
-
+                if "df_found" not in st.session_state:
+                    st.session_state.df_found = pd.DataFrame(
+                        result[['ma_san_pham', 'ten_san_pham']].drop_duplicates(), columns=["ma_san_pham", "ten_san_pham"])
+                st.write("🔍 **Kết quả tìm kiếm:**")
+                event = st.dataframe(
+                    st.session_state.df_found,
+                    key="data",
+                    on_select="rerun",
+                    selection_mode=["single-row"])
+                
+                if len(event.selection.rows) > 0:
+                    idx = event.selection.rows[0]
+                    selected_row = st.session_state.df_found.iloc[int(idx)]
+                    product_code = selected_row["ma_san_pham"]
+                else:
+                    selected_row = st.session_state.df_found.iloc[0] # Default get first row
+                    product_code = selected_row["ma_san_pham"]
             else:
                 st.write("Không tìm thấy sản phẩm!")
         

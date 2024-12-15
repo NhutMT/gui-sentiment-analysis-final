@@ -41,6 +41,7 @@ file = open(f'{folder_path}/vietnamese-stopwords.txt', 'r', encoding="utf8")
 stopwords_lst = file.read().split('\n')
 file.close()
 
+stopwords_lst = stopwords_lst + word_dictionary.manual_stopwords
 ####
 # Chuẩn hóa unicode tiếng việt
 def loaddicchar():
@@ -104,8 +105,10 @@ def process_postag_thesea(text, lst_word_type=None, preserve_phrases=None):
         lst_word_type = ['N', 'Np', 'A', 'Ab', 'V', 'Vb', 'Vy', 'R']  # Default POS tags
 
     if preserve_phrases is None:
-        preserve_phrases = ['rất','rất_tốt','tốt','bình_thường','cũng_được',\
-                            'tạm_được','khá','tệ','chán','10đ','chân_ái']  # Add more phrases as needed
+        preserve_phrases = ['giảm thâm','rất','rất_tốt','tốt','bình_thường','cũng_được',\
+                            'tạm_được','khá','tệ','chán','10đ','chân_ái','ngon_bổ_rẻ','ngon_rẻ',
+                            'ngon_bổ','ngon_tốt','xịn','quá tệ','không tốt',
+                            'không như quảng cáo','không giống quảng cáo','không hài lòng','nâng_tone']  # Add more phrases as needed
 
     # Preprocess text to temporarily replace preserve_phrases with tokens
     for phrase in preserve_phrases:
@@ -241,13 +244,11 @@ def clean_comment(df_data, input_col, output_col):
     df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: process_postag_thesea(x))
     print('- step5: Process Postag Thesea - Done...')
 
-    # Step 6: Remove Stopwords with Protected Words
-    df_data[f'{output_col}'] = df_data[output_col].apply(
-        lambda x: remove_stopword_with_protection(x, stopwords_lst, word_dictionary.protected_words)
-    )
-    print('- step6: Remove Stopwords - Done...')
+    # Step 6: Remove Stopwords
+    df_data[f'{output_col}'] = df_data[output_col].apply(lambda x: remove_stopword(x, stopwords_lst))
+    print('- step6: Remove Stopword - Done...')
 
-    # Step7: Create chunk word
+    # Step 7: Create chunk word
     df_data[f'{output_col}_chunk'] = df_data[output_col].apply(lambda x: chunk(x))
     print('- step7: Create Chunk - Done...')
 
