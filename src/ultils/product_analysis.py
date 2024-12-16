@@ -52,8 +52,8 @@ def wcloud_visualize(df_sub, column, title):
         print(f"Không có đủ dữ liệu để tạo Word Cloud cho {title}.")
         return
 
-    # Generate the word cloud
-    text = df_sub[column].str.cat(sep=' ')
+    # Generate the word cloud)
+    text = ' '.join(set(df_sub[column].str.cat(sep=' ').split()))
     wc = WordCloud(
         background_color='white',
         max_words=50,
